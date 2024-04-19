@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>エディターbyKOU</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #editor {
+            width: 95%;
+            height: 300px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            font-size: 10px;
+            lang: ja;
+            dir: ltr;
+        }
+    </style>
+</head>
+<body>
+    <h1>エディターbyKOU</h1>
+    <textarea id="editor" lang="ja" dir="ltr"></textarea>
+    <br><br>
+    <input type="file" id="fileInput" onchange="openFile(this.files)">
+    <button onclick="saveFile()">保存</button>
+
+    <script>
+        let fileHandle = null;
+
+        function openFile(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('editor').value = e.target.result;
+                }
+                reader.readAsText(file);
+                fileHandle = null;
+            }
+        }
+
+        function saveFile() {
+            const content = document.getElementById('editor').value;
+            if (fileHandle) {
+                writeFile(fileHandle, content);
+            } else {
+                const opt = {
+                    types: [{
+                        description: 'Text Files',
+                        accept: {
+                            'text/plain': ['.txt']
+                        }
+                    }]
+                };
+                window.showSaveFilePicker(opt).then(handle => {
+                    fileHandle = handle;
+                    writeFile(fileHandle, content);
+                });
+            }
+        }
+
+        async function writeFile(fileHandle, content) {
+            const writableStream = await fileHandle.createWritable();
+            await writableStream.write(content);
+            await writableStream.close();
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey) && e.keyCode === 83) {
+                e.preventDefault();
+                saveFile();
+            }
+        }, false);
+    </script>
+</body>
+</html>
